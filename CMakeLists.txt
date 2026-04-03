@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 4.3)
+project(game)
+#add_library(ncurses)
+add_executable(game snake.c)
+target_link_libraries(game PRIVATE ncurses)
