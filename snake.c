@@ -1,8 +1,8 @@
-#include <stdio.h>
 #include <ncurses.h>
 #include <stdlib.h>
 #include <time.h>
-#define MAX 10
+
+#define MAX 100
 
 // Few variables
 char player='@';
@@ -10,7 +10,7 @@ char food='o';
 int px=3,py=3;
 int fx,fy;
 int alive=1;
-int dirx=0,diry=0;
+int dirx=1,diry=0;
 int my,mx;
 int ch;
 int score=1;  //score starts at 1, don't really know why but it works else it acts weird... 
@@ -20,31 +20,15 @@ int segnum=0;
 
 //Function declarations.
 void eatfood();
-void showdebug();
 void death(); //head at that position.
 void screenborder();
 void outofborder();
 void posrec();
 void prsegs();
 
-//struct
-typedef struct {
-    int partnum;
-    //char piece;
-
-}parts;
-
 //__main__
-int main(int nargs,char* vargs[] ){
-    /*
-    char player='o';
-    char food='*';
-    float px=0,py=0;
-    int fx,fy;
-    int alive=1;
-    int dirx=0,diry=0;
-    int my,mx;
-    */
+int main(int nargs,char* vargs[]){
+    
     srand(time(NULL));
     initscr();
     noecho();
@@ -52,18 +36,16 @@ int main(int nargs,char* vargs[] ){
     keypad(stdscr,TRUE);
     nodelay(stdscr,TRUE);
     curs_set(0);
+    
     getmaxyx(stdscr,my,mx);
-    //int ch;
-    fx=rand() % mx;
-    fy=rand() % my;
-    //printf("%d %d",fx,fy)
-
-    if (nargs>1) showdebug();
-    //int x=0;
+    
+    fx=(1 + rand() % (mx-2));
+    fy=(1 + rand() % (my-2));
 
     do{
         clear();
-        screenborder();
+	screenborder();
+	mvprintw(0,0,"Score:%d",score-1);
         ch=getch();
         posrec();
         prsegs();
@@ -71,19 +53,19 @@ int main(int nargs,char* vargs[] ){
         mvprintw(fy,fx,"%c",food);
         refresh();
 
-        if (ch==KEY_LEFT){
+        if (ch==KEY_LEFT && dirx!=1){
             dirx=-1;
             diry=0;
         }
-        else if (ch==KEY_RIGHT){
+        else if (ch==KEY_RIGHT && dirx!=-1){
             dirx=1;
             diry=0;
         }
-        else if (ch==KEY_UP){
+        else if (ch==KEY_UP && diry!=1){
             dirx=0;
             diry=-1;
         }
-        else if (ch==KEY_DOWN){
+        else if (ch==KEY_DOWN && diry!=-1){
             dirx=0;
             diry=1;
         }
@@ -91,25 +73,15 @@ int main(int nargs,char* vargs[] ){
         px+=dirx;
         py+=(diry);
 
-        //segs[idk%MAX][0]=px;
-        //segs[idk%MAX][1]=py;
+        if (px==fx && py==fy) eatfood();
 
-        if (px==fx && py==fy){
-            eatfood();
-        }
-        if (px>mx || py>my || px<0 || py<0) outofborder(); //kill?
-        //mvprintw(0,10,"%d %d",px,py);
-        if (score>0){
-            ++idk;
-        }
-
-        if (dirx){
-            napms(150);
-        }
-        else{
-            napms(175);
-        }
-        //clear();
+        if (px>=mx-2 || py>=my-2 || px<1 || py<1) outofborder();
+        
+	if (score>0) ++idk;
+        
+	if (dirx) napms(150);
+        else napms(175);
+    	if (score==MAX) death();
     }while((ch!='q') && (alive));
 
     endwin();
@@ -118,19 +90,10 @@ int main(int nargs,char* vargs[] ){
 
 void eatfood(){
     mvprintw(fy,fx," ");
-    fx=rand() % mx;
-    fy=rand() % my;
+    fx=(1 + rand() % (mx-2));
+    fy=(1 + rand() % (my-2));
     ++score;
     napms(500);
-    // for segmetnts...
-    //mvprintw(segs[score-1][1],segs[score-1][0],"@");
-}
-
-void showdebug(){
-    mvprintw(3,0,"score: %d",score);
-    mvprintw(0,0,"screen sizen %d,%d",mx,my);
-    mvprintw(1,0,"Food: %d,%d",fx,fy);
-    mvprintw(2,0,"Player:%d %d",px,py);
 }
 
 void death(){
@@ -148,31 +111,23 @@ void screenborder(){
     mvaddch(my-1,mx-1,'+');
 }
 
-void outofborder(){
-    if (px>mx){
-    px=0;
-}
-else if (py>my){
-    py=0;
-}
-else if (px<0){
-    px=mx;
-}
-else if (py<0){
-    py=my;
-}
-}
-
 void posrec(){
     if (score){
         segs[idk%score][0]=px;
         segs[idk%score][1]=py;
-        //printf("%d %d\n",px,py);
     }
 }
 
 void prsegs(){
     for (int i=0;i<(score);i++){
         mvprintw(segs[i][1],segs[i][0],"@");
+	if (px +dirx == segs[i][0] && py +diry == segs[i][1]) death();
     }
+}
+
+void outofborder(){
+    if (px>mx-2) px=1;
+    else if (py>my-2) py=1;
+    else if (px<1) px=mx-2;
+    else if (py<1) py=my-2;
 }
