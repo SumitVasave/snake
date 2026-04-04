@@ -16,7 +16,6 @@ int ch;
 int score=1;  //score starts at 1, don't really know why but it works else it acts weird... 
 int segs[MAX][2];
 int idk=0;
-int segnum=0;
 
 //Function declarations.
 void eatfood();
@@ -26,9 +25,8 @@ void outofborder();
 void posrec();
 void prsegs();
 
-//__main__
-int main(int nargs,char* vargs[]){
-    
+int main(){
+
     srand(time(NULL));
     initscr();
     noecho();
@@ -36,9 +34,9 @@ int main(int nargs,char* vargs[]){
     keypad(stdscr,TRUE);
     nodelay(stdscr,TRUE);
     curs_set(0);
-    
+
     getmaxyx(stdscr,my,mx);
-    
+
     fx=(1 + rand() % (mx-2));
     fy=(1 + rand() % (my-2));
 
@@ -48,7 +46,7 @@ int main(int nargs,char* vargs[]){
 	mvprintw(0,0,"Score:%d",score-1);
         ch=getch();
         posrec();
-        prsegs();
+	prsegs();
         mvprintw(py,px,"%c",player);
         mvprintw(fy,fx,"%c",food);
         refresh();
@@ -73,18 +71,20 @@ int main(int nargs,char* vargs[]){
         px+=dirx;
         py+=(diry);
 
-        if (px==fx && py==fy) eatfood();
+        refresh();
 
         if (px>=mx-2 || py>=my-2 || px<1 || py<1) outofborder();
-        
+	if (px==fx && py==fy) eatfood();
 	if (score>0) ++idk;
-        
 	if (dirx) napms(150);
         else napms(175);
     	if (score==MAX) death();
     }while((ch!='q') && (alive));
 
     endwin();
+    printf("You Died With Scrore of %d\n",score-1);
+    printf("Credits : Sumit\n");
+    return 0;
 
 }
 
@@ -122,7 +122,7 @@ void prsegs(){
     for (int i=0;i<(score);i++){
         mvprintw(segs[i][1],segs[i][0],"@");
 	if (px +dirx == segs[i][0] && py +diry == segs[i][1]) death();
-    }
+}
 }
 
 void outofborder(){
