@@ -131,3 +131,4 @@ void outofborder(){
     else if (px<1) px=mx-2;
     else if (py<1) py=my-2;
 }
+
